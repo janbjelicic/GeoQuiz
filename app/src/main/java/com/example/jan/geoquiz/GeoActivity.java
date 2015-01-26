@@ -2,19 +2,21 @@ package com.example.jan.geoquiz;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
 
 public class GeoActivity extends Activity {
 
-    private Button mTrueButton;
-    private Button mFalseButton;
-    private Button mNextButton;
+    private static final String TAG = "QuizAcitivity";
+    private Button mTrueButton, mFalseButton;
+    private ImageButton mNextButton, mPreviousButton;
 
     private TextView mQuestionTextView;
 
@@ -31,23 +33,34 @@ public class GeoActivity extends Activity {
         mQuestionTextView.setText(mQuestionBank[mCurrentIndex].getQuestion());
     }
 
+    private void setNextQuestion(){
+        mCurrentIndex = (mCurrentIndex + 1) % mQuestionBank.length;
+        updateQuestion();
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d(TAG, "onCreate(Bundle) called.");
         setContentView(R.layout.activity_geo_acitivity);
 
         mQuestionTextView = (TextView) findViewById(R.id.question_text_view);
+        mQuestionTextView.setOnClickListener(new View.OnClickListener(){
+
+            @Override
+            public void onClick(View v) {
+                setNextQuestion();
+            }
+        });
         updateQuestion();
 
-        mNextButton = (Button)findViewById(R.id.next_button);
+        mNextButton = (ImageButton)findViewById(R.id.next_button);
         mNextButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mCurrentIndex = (mCurrentIndex + 1) % mQuestionBank.length;
-                updateQuestion();
+                setNextQuestion();
             }
         });
-
         mTrueButton = (Button)findViewById(R.id.true_button);
         mTrueButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -60,6 +73,14 @@ public class GeoActivity extends Activity {
             @Override
             public void onClick(View v) {
                 checkAnswer(false);
+            }
+        });
+        mPreviousButton = (ImageButton)findViewById(R.id.previous_button);
+        mPreviousButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mCurrentIndex = mCurrentIndex == 0 ? mQuestionBank.length - 1 : mCurrentIndex - 1;
+                updateQuestion();
             }
         });
     }
@@ -97,4 +118,32 @@ public class GeoActivity extends Activity {
 
         return super.onOptionsItemSelected(item);
     }
+
+    @Override
+    public void onStart(){
+        super.onStart();
+        Log.d(TAG, "onStart() is called");
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        Log.d(TAG, "onPause() called");
+    }
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.d(TAG, "onResume() called");
+    }
+    @Override
+    public void onStop() {
+        super.onStop();
+        Log.d(TAG, "onStop() called");
+    }
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Log.d(TAG, "onDestroy() called");
+    }
+
 }
