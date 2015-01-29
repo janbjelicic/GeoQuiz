@@ -1,6 +1,7 @@
 package com.example.jan.geoquiz;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -14,8 +15,11 @@ import android.widget.Toast;
 
 public class GeoActivity extends Activity {
 
-    private static final String TAG = "QuizAcitivity";
-    private Button mTrueButton, mFalseButton;
+    private static final String TAG = "QuizActivity";
+    private static final String KEY_INDEX = "Index";
+    private static final String IS_CHEATER = "Cheater";
+
+    private Button mTrueButton, mFalseButton, mCheatButton;
     private ImageButton mNextButton, mPreviousButton;
 
     private TextView mQuestionTextView;
@@ -28,6 +32,7 @@ public class GeoActivity extends Activity {
         new TrueFalse(R.string.question_oceans, true)
     };
     private int mCurrentIndex = 0;
+    private boolean mIsCheater;
 
     private void updateQuestion(){
         mQuestionTextView.setText(mQuestionBank[mCurrentIndex].getQuestion());
@@ -43,6 +48,13 @@ public class GeoActivity extends Activity {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "onCreate(Bundle) called.");
         setContentView(R.layout.activity_geo_acitivity);
+
+        mIsCheater = false;
+
+        if(savedInstanceState != null){
+            mCurrentIndex = savedInstanceState.getInt(KEY_INDEX);
+            mIsCheater = savedInstanceState.getBoolean(IS_CHEATER);
+        }
 
         mQuestionTextView = (TextView) findViewById(R.id.question_text_view);
         mQuestionTextView.setOnClickListener(new View.OnClickListener(){
@@ -83,15 +95,31 @@ public class GeoActivity extends Activity {
                 updateQuestion();
             }
         });
+        mCheatButton = (Button)findViewById(R.id.cheat_button);
+        mCheatButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Start activity.
+                Intent i = new Intent(GeoActivity.this, CheatActivity.class);
+                i.putExtra(CheatActivity.EXTRA_ANSWER_IS_TRUE, mQuestionBank[mCurrentIndex].isTrueQuestion());
+                startActivityForResult(i, 0);
+            }
+        });
     }
 
     private void checkAnswer(boolean userPressedTrue){
         boolean answerIsTrue = mQuestionBank[mCurrentIndex].isTrueQuestion();
-        int messageResId = 0;
-        if(userPressedTrue == answerIsTrue)
-            messageResId = R.string.correct_toast;
-        else
-            messageResId = R.string.incorrect_toast;
+        int messageResId;
+        if(mIsCheater)
+        {
+           messageResId = R.string.judgment_toast;
+        }
+        else {
+            if (userPressedTrue == answerIsTrue)
+                messageResId = R.string.correct_toast;
+            else
+                messageResId = R.string.incorrect_toast;
+        }
         Toast.makeText(GeoActivity.this,
                 messageResId,
                 Toast.LENGTH_SHORT).show();
@@ -117,6 +145,22 @@ public class GeoActivity extends Activity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState){
+        super.onSaveInstanceState(savedInstanceState);
+        Log.i(TAG, "onSaveInstanceState");
+        savedInstanceState.putInt(KEY_INDEX, mCurrentIndex);
+        savedInstanceState.putBoolean(IS_CHEATER, mIsCheater);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (data == null) {
+            return;
+        }
+        mIsCheater = data.getBooleanExtra(CheatActivity.EXTRA_ANSWER_SHOWN, false);
     }
 
     @Override
